@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StressCheck - Student Stress Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .stress-meter {
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .question {
+            margin-bottom: 25px;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .question:nth-child(1) { animation-delay: 0.1s; }
+        .question:nth-child(2) { animation-delay: 0.2s; }
+        .question:nth-child(3) { animation-delay: 0.3s; }
+        .question:nth-child(4) { animation-delay: 0.4s; }
+        .question:nth-child(5) { animation-delay: 0.5s; }
+        .question:nth-child(6) { animation-delay: 0.6s; }
+
+        .question h3 {
+            margin-bottom: 15px;
+            color: #4a5568;
+            font-size: 1.1rem;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .option:hover::before {
+            left: 100%;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 30px auto 0;
+            min-width: 200px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            text-align: center;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .stress-level {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+        }
+
+        .stress-low {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .stress-moderate {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .stress-high {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #4a5568;
+        }
+
+        .chatbot {
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        .chat-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            background: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 18px;
+            border-radius: 20px;
+            max-width: 80%;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .bot-message {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        .user-message {
+            background: #e2e8f0;
+            color: #4a5568;
+            margin-left: auto;
+            text-align: right;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .chat-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 StressCheck</h1>
+            <p>Your Personal Stress Assessment & Wellness Companion</p>
+        </div>
+
+        <!-- Stress Meter Section -->
+        <div class="card stress-meter" id="stressMeter">
+            <h2>📊 Stress Level Assessment</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <form id="stressForm">
+                <div class="question">
+                    <h3>1. How would you rate your sleep quality over the past week?</h3>
+                    <div class="options">
+                        <div class="option" data-value="1">😴 Excellent - I sleep well and wake up refreshed</div>
+                        <div class="option" data-value="2">😊 Good - Mostly restful with occasional issues</div>
+                        <div class="option" data-value="3">😐 Fair - Some difficulty falling/staying asleep</div>
+                        <div class="option" data-value="4">😟 Poor - Frequent sleep disruptions</div>
+                        <div class="option" data-value="5">😫 Very Poor - Severe insomnia or restless sleep</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>2. How often do you feel overwhelmed by your responsibilities?</h3>
+                    <div class="options">
+                        <div class="option" data-value="1">🌟 Rarely - I manage my tasks well</div>
+                        <div class="option" data-value="2">😌 Sometimes - Occasionally feel stretched</div>
+                        <div class="option" data-value="3">😕 Often - Regularly feel overwhelmed</div>
+                        <div class="option" data-value="4">😰 Most of the time - Constantly struggling</div>
+                        <div class="option" data-value="5">😵 Always - Completely overwhelmed</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>3. How is your concentration and focus lately?</h3>
+                    <div class="options">
+                        <div class="option" data-value="1">🎯 Excellent - Sharp and focused</div>
+                        <div class="option" data-value="2">👍 Good - Generally focused with minor lapses</div>
+                        <div class="option" data-value="3">😐 Average - Some difficulty concentrating</div>
+                        <div class="option" data-value="4">😵‍💫 Poor - Frequently distracted or unfocused</div>
+                        <div class="option" data-value="5">🤯 Very Poor - Cannot concentrate at all</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>4. How would you describe your current mood?</h3>
+                    <div class="options">
+                        <div class="option" data-value="1">😄 Very positive and optimistic</div>
+                        <div class="option" data-value="2">🙂 Generally good with normal ups and downs</div>
+                        <div class="option" data-value="3">😑 Neutral to slightly down</div>
+                        <div class="option" data-value="4">😞 Often sad, anxious, or irritable</div>
+                        <div class="option" data-value="5">😭 Consistently low, depressed, or anxious</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>5. How well are you managing your time and deadlines?</h3>
+                    <div class="options">
+                        <div class="option" data-value="1">⏰ Excellent - Always organized and on time</div>
+                        <div class="option" data-value="2">✅ Good - Usually meet deadlines with planning</div>
+                        <div class="option" data-value="3">⚠️ Average - Sometimes struggle with time management</div>
+                        <div class="option" data-value="4">🚨 Poor - Often miss deadlines or feel rushed</div>
+                        <div class="option" data-value="5">💥 Very Poor - Constantly behind and panicking</div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <h3>6. How often do you experience physical symptoms like headaches, tension, or fatigue?</h3>
+                    <div class="options">
+                        <div class="option" data-value="1">💪 Rarely - I feel physically well</div>
+                        <div class="option" data-value="2">🤷 Occasionally - Minor symptoms sometimes</div>
+                        <div class="option" data-value="3">😤 Regularly - Noticeable physical symptoms</div>
+                        <div class="option" data-value="4">🤒 Frequently - Multiple symptoms affecting daily life</div>
+                        <div class="option" data-value="5">🆘 Constantly - Severe physical symptoms</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="calculateBtn" disabled>Calculate My Stress Level</button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="card results hidden" id="results">
+            <h2>📈 Your Stress Assessment Results</h2>
+            <div class="score-display" id="scoreDisplay"></div>
+            <div class="stress-level" id="stressLevel"></div>
+            <div id="generalAdvice"></div>
+            <button class="btn" onclick="resetAssessment()">Take Assessment Again</button>
+        </div>
+
+        <!-- Chatbot Section -->
+        <div class="card chatbot hidden" id="chatbot">
+            <h2>🤖 StressBot - Your Wellness Assistant</h2>
+            <div class="chat-container" id="chatContainer">
+                <div class="message bot-message">
+                    Hi! I'm StressBot, your personal wellness assistant. Based on your stress assessment, I'm here to provide personalized advice and support. Feel free to ask me about stress management techniques, study tips, or any concerns you have!
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Ask me anything about stress management..." onkeypress="handleChatKeyPress(event)">
+                <button class="chat-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStressScore = 0;
+        let selectedAnswers = {};
+        let answeredQuestions = 0;
+
+        // Handle option selection
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                const question = this.closest('.question');
+                const questionIndex = Array.from(question.parentNode.children).indexOf(question);
+                
+                // Remove selection from other options in the same question
+                question.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Select this option
+                this.classList.add('selected');
+                
+                // Store the answer
+                const value = parseInt(this.dataset.value);
+                if (!selectedAnswers[questionIndex]) {
+                    answeredQuestions++;
+                }
+                selectedAnswers[questionIndex] = value;
+                
+                // Update progress
+                updateProgress();
+                
+                // Enable calculate button if all questions answered
+                if (answeredQuestions === 6) {
+                    document.getElementById('calculateBtn').disabled = false;
+                }
+            });
+        });
+
+        function updateProgress() {
+            const progress = (answeredQuestions / 6) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Handle form submission
+        document.getElementById('stressForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateStressLevel();
+        });
+
+        function calculateStressLevel() {
+            // Calculate total score
+            const totalScore = Object.values(selectedAnswers).reduce((sum, score) => sum + score, 0);
+            currentStressScore = totalScore;
+
+            // Determine stress level
+            let stressLevel, stressClass, advice;
+            
+            if (totalScore <= 12) {
+                stressLevel = "Low Stress";
+                stressClass = "stress-low";
+                advice = `
+                    <p><strong>Great news!</strong> Your stress levels appear to be well-managed. You're doing an excellent job maintaining your mental wellness.</p>
+                    <p><strong>Keep it up by:</strong></p>
+                    <ul style="text-align: left; margin: 15px 0;">
+                        <li>Maintaining your current healthy habits</li>
+                        <li>Continuing regular sleep schedule</li>
+                        <li>Staying physically active</li>
+                        <li>Practicing preventive stress management</li>
+                    </ul>
+                `;
+            } else if (totalScore <= 20) {
+                stressLevel = "Moderate Stress";
+                stressClass = "stress-moderate";
+                advice = `
+                    <p><strong>You're experiencing moderate stress levels.</strong> This is common and manageable with the right strategies.</p>
+                    <p><strong>Recommended actions:</strong></p>
+                    <ul style="text-align: left; margin: 15px 0;">
+                        <li>Implement daily stress-reduction techniques</li>
+                        <li>Improve time management and organization</li>
+                        <li>Ensure adequate sleep (7-9 hours)</li>
+                        <li>Consider talking to someone you trust</li>
+                    </ul>
+                `;
+            } else {
+                stressLevel = "High Stress";
+                stressClass = "stress-high";
+                advice = `
+                    <p><strong>Your stress levels are concerning and need immediate attention.</strong> Please don't ignore these signs.</p>
+                    <p><strong>Important steps to take:</strong></p>
+                    <ul style="text-align: left; margin: 15px 0;">
+                        <li>Consider speaking with a counselor or mental health professional</li>
+                        <li>Reach out to friends, family, or support services</li>
+                        <li>Practice immediate stress-relief techniques</li>
+                        <li>Evaluate and possibly reduce your current commitments</li>
+                    </ul>
+                    <p style="color: #e53e3e; font-weight: bold;">If you're having thoughts of self-harm, please seek immediate help from a crisis hotline or emergency services.</p>
+                `;
+            }
+
+            // Display results
+            document.getElementById('scoreDisplay').textContent = `Your stress score: ${totalScore}/30`;
+            const stressLevelElement = document.getElementById('stressLevel');
+            stressLevelElement.textContent = stressLevel;
+            stressLevelElement.className = `stress-level ${stressClass}`;
+            document.getElementById('generalAdvice').innerHTML = advice;
+
+            // Show results and chatbot
+            document.getElementById('stressMeter').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('chatbot').classList.remove('hidden');
+
+            // Initialize chatbot with personalized message
+            initializeChatbot(stressLevel, totalScore);
+        }
+
+        function initializeChatbot(stressLevel, score) {
+            const chatContainer = document.getElementById('chatContainer');
+            const personalizedMessage = getPersonalizedMessage(stressLevel, score);
+            
+            setTimeout(() => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message bot-message';
+                messageDiv.innerHTML = personalizedMessage;
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 1000);
+        }
+
+        function getPersonalizedMessage(stressLevel, score) {
+            if (score <= 12) {
+                return "🌟 Congratulations on maintaining low stress levels! I can help you with tips to keep this positive momentum going. What specific area would you like to strengthen further?";
+            } else if (score <= 20) {
+                return "💪 I see you're dealing with moderate stress - that's completely normal and manageable! I have several techniques that can help reduce your stress. Would you like to start with breathing exercises, time management tips, or study strategies?";
+            } else {
+                return "🤗 I'm here to support you through this challenging time. High stress can feel overwhelming, but there are effective ways to manage it. Let's start with some immediate relief techniques. Would you like to try a quick breathing exercise or discuss ways to break down your current challenges?";
+            }
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+
+            // Generate bot response
+            setTimeout(() => {
+                const response = generateBotResponse(message.toLowerCase());
+                addMessage(response, 'bot');
+            }, 1000);
+        }
+
+        function addMessage(text, sender) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerHTML = text;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function generateBotResponse(userMessage) {
+            // Simple decision tree logic for chatbot responses
+            const responses = {
+                breathing: {
+                    keywords: ['breathing', 'breathe', 'anxiety', 'panic', 'calm'],
+                    response: `🫁 <strong>Try the 4-7-8 Breathing Technique:</strong><br>
+                    1. Inhale through your nose for 4 counts<br>
+                    2. Hold your breath for 7 counts<br>
+                    3. Exhale through your mouth for 8 counts<br>
+                    4. Repeat 3-4 times<br><br>
+                    This activates your body's relaxation response. Practice this whenever you feel stressed!`
+                },
+                sleep: {
+                    keywords: ['sleep', 'insomnia', 'tired', 'rest', 'sleeping'],
+                    response: `😴 <strong>Sleep Hygiene Tips:</strong><br>
+                    • Keep a consistent sleep schedule<br>
+                    • Avoid screens 1 hour before bed<br>
+                    • Create a cool, dark environment<br>
+                    • Try relaxation techniques before bed<br>
+                    • Avoid caffeine after 2 PM<br><br>
+                    Quality sleep is crucial for stress management!`
+                },
+                study: {
+                    keywords: ['study', 'exam', 'test', 'homework', 'assignment', 'grade'],
+                    response: `📚 <strong>Effective Study Strategies:</strong><br>
+                    • Use the Pomodoro Technique (25 min focus + 5 min break)<br>
+                    • Break large tasks into smaller chunks<br>
+                    • Create a dedicated study space<br>
+                    • Use active recall and spaced repetition<br>
+                    • Form study groups for accountability<br><br>
+                    Remember: Progress over perfection!`
+                },
+                time: {
+                    keywords: ['time', 'schedule', 'organize', 'deadline', 'manage', 'planning'],
+                    response: `⏰ <strong>Time Management Tips:</strong><br>
+                    • Use a planner or digital calendar<br>
+                    • Prioritize tasks using the Eisenhower Matrix<br>
+                    • Set specific, achievable daily goals<br>
+                    • Include buffer time for unexpected tasks<br>
+                    • Learn to say no to non-essential commitments<br><br>
+                    Good planning reduces stress significantly!`
+                },
+                help: {
+                    keywords: ['help', 'support', 'counselor', 'therapy', 'professional'],
+                    response: `🤝 <strong>When to Seek Professional Help:</strong><br>
+                    • Stress interferes with daily activities<br>
+                    • You feel overwhelmed most of the time<br>
+                    • Physical symptoms persist<br>
+                    • You're having trouble sleeping regularly<br>
+                    • You feel isolated or hopeless<br><br>
+                    Remember: Seeking help is a sign of strength, not weakness!`
+                },
+                exercise: {
+                    keywords: ['exercise', 'workout', 'physical', 'activity', 'movement'],
+                    response: `🏃‍♂️ <strong>Exercise for Stress Relief:</strong><br>
+                    • Even 10 minutes of walking helps<br>
+                    • Try yoga or stretching<br>
+                    • Dance to your favorite music<br>
+                    • Take the stairs instead of elevator<br>
+                    • Exercise releases natural mood boosters!<br><br>
+                    Start small and build consistency.`
+                },
+                nutrition: {
+                    keywords: ['eat', 'food', 'nutrition', 'diet', 'hungry'],
+                    response: `🥗 <strong>Stress-Fighting Nutrition:</strong><br>
+                    • Eat regular, balanced meals<br>
+                    • Include omega-3 rich foods (fish, walnuts)<br>
+                    • Stay hydrated throughout the day<br>
+                    • Limit caffeine and sugar<br>
+                    • Try herbal teas (chamomile, green tea)<br><br>
+                    Your body needs fuel to handle stress effectively!`
+                }
+            };
+
+            // Check for specific keywords
+            for (const [category, data] of Object.entries(responses)) {
+                if (data.keywords.some(keyword => userMessage.includes(keyword))) {
+                    return data.response;
+                }
+            }
+
+            // Check stress level specific responses
+            if (currentStressScore <= 12) {
+                return `🌈 Since your stress levels are low, focus on <strong>maintenance strategies</strong>:<br>
+                • Continue your current healthy habits<br>
+                • Practice gratitude daily<br>
+                • Maintain social connections<br>
+                • Try new stress-prevention techniques<br><br>
+                What specific area would you like to explore?`;
+            } else if (currentStressScore <= 20) {
+                return `💡 For moderate stress, try these <strong>active management techniques</strong>:<br>
+                • Practice mindfulness for 10 minutes daily<br>
+                • Use progressive muscle relaxation<br>
+                • Break overwhelming tasks into steps<br>
+                • Schedule regular breaks<br><br>
+                Would you like me to guide you through any of these techniques?`;
+            } else {
+                return `🆘 For high stress levels, <strong>immediate relief is important</strong>:<br>
+                • Try the breathing exercise I mentioned earlier<br>
+                • Reach out to someone you trust<br>
+                • Consider professional support<br>
+                • Focus on basic needs: sleep, food, safety<br><br>
+                Remember, you don't have to handle this alone. What feels most urgent right now?`;
+            }
+        }
+
+        function resetAssessment() {
+            selectedAnswers = {};
+            answeredQuestions = 0;
+            currentStressScore = 0;
+            
+            // Reset form
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            document.getElementById('calculateBtn').disabled = true;
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // Reset chat
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = `
+                <div class="message bot-message">
+                    Hi! I'm StressBot, your personal wellness assistant. Based on your stress assessment, I'm here to provide personalized advice and support. Feel free to ask me about stress management techniques, study tips, or any concerns you have!
+                </div>
+            `;
+            
+            // Show meter, hide results and chatbot
+            document.getElementById('stressMeter').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('chatbot').classList.add('hidden');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
